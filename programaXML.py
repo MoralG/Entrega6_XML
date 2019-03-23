@@ -1,12 +1,14 @@
+
 from lxml import etree
 doc = etree.parse('radares.xml')
 
 #------------------------ Definicion de variable ------------------------------------
 
 dic_provinciaradares = {}
-radares = []
-carreteras_provincia = []
+dic_radarescoord = {}
 lista_carreteras = []
+carreteras = []
+lista_radarescoord = [ ]
 
 #---------------------- Lista Municipios (con radares) ------------------------------
 
@@ -30,7 +32,7 @@ lista_radares = doc.xpath("//RADAR")
 
 def municipios_radares(carretera,doc):
 
-    carreterastotales = doc.xpath('//PROVINCIA[NOMBRE="%s"]/CARRETERA/DENOMINACION/text()'%municipio)
+    carreterastotales = doc.xpath('//PROVINCIA[NOMBRE="%s"]/CARRETERA/DENOMINACION/text()'%carretera)
 
     for carretera in carreterastotales:
 
@@ -38,7 +40,7 @@ def municipios_radares(carretera,doc):
 
             carreteras.append(carretera)
 
-    for elem in carre-teras:
+    for elem in carreteras:
         
         print("")
         print("-----------------------------------")
@@ -61,11 +63,17 @@ def carreteras_radares(carretera,doc):
 
 def radares_coord(carretera,doc):
 
-    punto_inicial = doc.xpath('//CARRETERA[DENOMINACION="%s"]/../RADAR/PUNTO_INICIAL'%carretera)
+    for coord in doc.xpath('//CARRETERA[DENOMINACION="%s"]/.'%carretera):
 
-    #dic_radarescoord[municipio] = len(radares)
+        latitud = coord.xpath('./RADAR/PUNTO_INICIAL/LATITUD/text()')[0]
+        longitud = coord.xpath('./RADAR/PUNTO_INICIAL/LONGITUD/text()')[0]
+        provincia = coord.xpath('./../NOMBRE/text()')[0]
+        
+        dic_radarescoord = {}
+        dic_radarescoord[carretera] = [latitud,longitud,provincia]
+        lista_radarescoord.append(dic_radarescoord)
 
-    return punto_inicial
+    return lista_radarescoord
 
 #--------------------------------- Programa ------------------------------------------
 
@@ -163,30 +171,40 @@ while opcion != 0:
         print("---------------------------------------------------------------------------------")
 
         print("")
-        carreteracoord = input("Introduce el punto id: ")   
+        carreteracoord = input("Introduce el punto carretera: ")   
         print("")    
 
         while carreteracoord not in lista_carreteras:
 
             print("")
             print("--------------------------")
-            print("ERROR, no existe id")
+            print("ERROR, no existe la carretera")
             print("--------------------------")
             print("")
 
-            carreteracoord = input("Introduce el punto id: ")
+            carreteracoord = input("Introduce el punto carretera: ")
 
-    print(radares_coord(carreteracoord,doc))
-        # 
-        # zoom = input("Introduce el zoom: ")   
-# 
-        # print("")
-        # print("------------------------------------------------")
-        # print("Parque:",doc.xpath('/result/elements/item[punt_id = "%s"]/adreca_nom/text()'%punt_id)[0])
-        # print("https://www.openstreetmap.org/#map=%s/%s/%s" %(zoom,coordenadas(punt_id,doc)[0],coordenadas(punt_id,doc)[1]))
-        # print("------------------------------------------------")
-        # print("")
- 
+        zoom = input("Introduce el zoom: ")   
+
+        print("")
+        print("-------------------- Carretera ----------------------------")
+        print("")
+        print("                      ",carreteracoord)
+        print("")
+        print("---------------- Link OpenStreeMap ------------------------")
+        print("")
+        
+        for dicoord in radares_coord(carreteracoord,doc):
+            
+            latitud = dicoord.get(carreteracoord)[0]
+            longitud = dicoord.get(carreteracoord)[1]
+
+            print("Provincia:",dicoord.get(carreteracoord)[2])
+            print("Link: https://www.openstreetmap.org/#map=%s/%s/%s" %(zoom,latitud,longitud))
+            print("")
+            print("-------------------------------------------")
+            print("")
+            
     if opcion < 0 or opcion > 5:
 
         print("-----------------------")
